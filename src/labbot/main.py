@@ -1,12 +1,14 @@
 """LabBot FastAPI application."""
 
 import logging
+from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from labbot.config import settings
 from labbot.logging_config import setup_logging
+from labbot.pii_detector import detect_pii_in_dict
 from labbot.schemas import LabResultsInput
 
 setup_logging()
@@ -55,19 +57,44 @@ async def health() -> dict[str, str]:
 async def interpret(lab_results: LabResultsInput) -> dict[str, str]:
     """Interpret lab results.
 
-    This endpoint validates input against the LabResultsInput schema.
-    Invalid input automatically returns 422 with validation details.
+    This endpoint validates input against the LabResultsInput schema and checks
+    for personally identifiable information (PII). If PII is detected, returns
+    a 400 error without processing the request.
 
     Args:
         lab_results: Validated lab results input containing list of lab values.
 
     Returns:
-        Dictionary with status message (stub implementation).
+        Dictionary with status message (stub implementation for non-PII data).
 
     Raises:
+        HTTPException: 400 if PII is detected in the input.
         HTTPException: FastAPI automatically returns 422 for validation errors.
     """
+    request_log_id: str = f"interpret-{id(lab_results)}"
+
+    # Convert LabResultsInput to dict for PII detection
+    lab_results_dict: dict[str, Any] = lab_results.model_dump()
+
+    # Check for PII in the request
+    detected_pii: list[str] = detect_pii_in_dict(lab_results_dict)
+
+    if detected_pii:
+        # Log PII detection without including the actual PII data
+        logger.warning(
+            f"PII detected in request [{request_log_id}]: types={detected_pii}. "
+            "Request rejected."
+        )
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "PII detected",
+                "types": detected_pii,
+            },
+        )
+
     logger.info(
-        f"Received interpretation request with {len(lab_results.lab_values)} lab values"
+        f"Received interpretation request [{request_log_id}] with "
+        f"{len(lab_results.lab_values)} lab values (PII check passed)"
     )
     return {"status": "processing", "message": "Interpretation endpoint received valid input"}

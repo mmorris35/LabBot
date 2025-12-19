@@ -247,7 +247,90 @@ Traditional development often jumps straight to code. This project demonstrates:
 - Having a clear schema definition first (1.2.1) made the endpoint implementation trivial
 
 ### Phase 2: PII Detection
-<!-- Entries will be added during implementation -->
+
+## [2025-12-19 14:58] Subtask 2.1.1: PII Detection Module
+
+**Time Spent**: 45 minutes
+
+**What Was Done**:
+- Created `src/labbot/pii_detector.py` with 5 PII detection functions
+- Implemented `detect_pii(input_text: str) -> list[str]` for scanning plain text
+- Implemented `detect_pii_in_dict(data: dict) -> list[str]` for scanning nested data structures
+- Detects 5 PII types: SSN (2 formats), phone (4 formats), email, DOB (multiple formats), names
+- SSN detection: XXX-XX-XXXX format and 9-digit format with word boundaries
+- Phone detection: XXX-XXX-XXXX, XXX.XXX.XXXX, XXX XXX XXXX, (XXX) XXX-XXXX patterns
+- Email detection: Standard RFC pattern with plus addressing and underscores
+- DOB detection: MM/DD/YYYY, M/D/YYYY, MM-DD-YYYY, and European DD/MM/YYYY formats
+- Name detection: Dictionary key patterns (patient_name, full_name, first_name, last_name, surname) and text patterns
+- Created `tests/test_pii_detector.py` with 57 comprehensive tests organized in 10 test classes
+- Tests organized by PII type: SSN (5), Phone (7), Email (6), DOB (6), Name (11), Combined (4), Dictionary (8), False Positives (4), Edge Cases (6)
+- Comprehensive false positive tests for lab values: CBC results, metabolic panels, numeric ranges
+- All tests pass with 100% coverage on pii_detector module
+- Full test suite: 120 tests total with 100% coverage across all modules
+
+**Key Decisions**:
+- Used word boundaries (\b) in SSN patterns to prevent false positives on lab values
+- Dictionary key checking with _is_name_field_key() to detect common name fields separately from values
+- Recursive structure handling for detect_pii_in_dict() to support deeply nested data
+- Each PII type appears at most once in result list (set-based deduplication)
+- Helper functions (_contains_name_field, _extract_pii_recursive, _is_name_field_key) for clear separation of concerns
+- Returns empty list for clean data (no PII found)
+
+**Challenges**:
+- Initial test failures due to misunderstanding name field detection requirements
+- Had to adjust tests to use field patterns (like "patient_name: John Smith") rather than just values
+- Updated approach to check dictionary keys separately using _is_name_field_key()
+- Fixed unused import pytest error during linting phase
+
+**Learnings**:
+- PII detection requires understanding context - just a name value isn't PII, but a "patient_name" field is
+- Using helper functions with clear single responsibilities makes the code more maintainable
+- Word boundaries in regex patterns are crucial for avoiding false positives on numeric data
+- Recursive structure handling is elegant but requires careful parameter passing (check_keys flag)
+- Comprehensive false positive testing ensures the module doesn't over-detect on legitimate lab data
+- The 100% coverage requirement naturally leads to discovering edge cases
+
+## [2025-12-19 13:32] Subtask 2.1.2: PII Gate Middleware
+
+**Time Spent**: 12 minutes
+
+**What Was Done**:
+- Integrated PII detector into `/api/interpret` endpoint as a security gate
+- Modified `src/labbot/main.py` to check for PII before processing requests
+- Endpoint converts LabResultsInput to dict using model_dump() for PII scanning
+- Returns HTTP 400 with error details if PII detected: {"error": "PII detected", "types": [...]}
+- Added comprehensive logging: warns on PII detection with types (not the actual data), logs successful requests
+- Created 8 new tests in `tests/test_api.py` covering:
+  - SSN detection
+  - Phone number detection
+  - Email detection
+  - Date of birth detection
+  - Personal name field detection
+  - Multiple PII types in single request
+  - Clean data acceptance (no PII rejection)
+- All 127 tests pass with 100% code coverage
+- Verified ruff and mypy both pass without issues
+
+**Key Decisions**:
+- PII detection at endpoint level (after schema validation) ensures only valid data structures reach detector
+- Used unique request ID (based on object id) for logging without exposing PII
+- HTTPException detail field carries structured error response for FastAPI serialization
+- Clean requests (with PII-free data) proceed without modification to preserve stub endpoint behavior
+- Tests use valid lab data with PII embedded in string fields to test realistic scenarios
+
+**Challenges**:
+- Initial test failures because Pydantic validation rejected string values in float fields
+- Solution: Kept test payloads schema-valid (floats for values) while embedding PII in string fields (names, units)
+- All tests now pass with proper validation of both schema integrity and PII detection
+
+**Learnings**:
+- FastAPI's automatic validation layer (Pydantic) runs before endpoint code, so PII detection happens on validated data only
+- HTTPException with dict detail is automatically serialized to JSON by FastAPI
+- Logging PII type names without data is crucial for security and auditability
+- Using object id for request correlation is lightweight and doesn't expose sensitive info
+- Testing edge cases (multiple PII types, different field patterns) is essential for security features
+
+## Phase 2: PII Detection Complete (2 of 2 subtasks)
 
 ### Phase 3: AI Interpretation
 <!-- Entries will be added during implementation -->

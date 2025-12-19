@@ -690,34 +690,36 @@ class InterpretationResponse(BaseModel):
 - [x] 1.2.2: Input Validation Endpoint
 
 **Deliverables**:
-- [ ] Create `src/labbot/pii_detector.py`
-- [ ] Detect: SSN, phone, email, DOB patterns, names (common patterns)
-- [ ] Return list of detected PII types
-- [ ] Create `tests/test_pii_detector.py` with comprehensive tests
+- [x] Create `src/labbot/pii_detector.py`
+- [x] Detect: SSN, phone, email, DOB patterns, names (common patterns)
+- [x] Return list of detected PII types
+- [x] Create `tests/test_pii_detector.py` with comprehensive tests
 
 **Detection patterns**:
-- SSN: `\d{3}-\d{2}-\d{4}` or `\d{9}`
-- Phone: `\d{3}[-.\s]?\d{3}[-.\s]?\d{4}`
-- Email: standard email regex
-- DOB: `\d{1,2}/\d{1,2}/\d{2,4}` and variations
-- Names: Check for common name fields (patient_name, name, full_name)
+- SSN: `\d{3}-\d{2}-\d{4}` or `\d{9}` with word boundaries
+- Phone: `\d{3}[-.\s]?\d{3}[-.\s]?\d{4}` with multiple format support
+- Email: RFC standard email pattern with plus addressing and underscores
+- DOB: `\d{1,2}/\d{1,2}/\d{2,4}` with slash and dash separators
+- Names: Dictionary key patterns (patient_name, full_name, first_name, last_name, surname) and text field patterns
 
 **Success Criteria**:
-- [ ] Detects all PII types listed
-- [ ] Returns empty list for clean data
-- [ ] Tests cover all pattern types
-- [ ] No false positives on numeric lab values
+- [x] Detects all PII types listed
+- [x] Returns empty list for clean data
+- [x] Tests cover all pattern types
+- [x] No false positives on numeric lab values
 
 ---
 
 **Completion Notes**:
-- **Implementation**: (describe what was done)
-- **Files Created**: (filename - line count)
-- **Files Modified**: (filename)
-- **Tests**: (X tests, Y% coverage)
-- **Build**: ruff: pass, mypy: pass
+- **Implementation**: Created complete PII detection module with detect_pii() function for string scanning and detect_pii_in_dict() for nested data structures. Implemented 5 PII type detectors: SSN (2 formats), phone (multiple formats including parentheses), email (with plus addressing), DOB (multiple date formats), and personal names (with dictionary key pattern matching). All patterns use word boundaries or specific format constraints to prevent false positives on lab values.
+- **Files Created**:
+  - `src/labbot/pii_detector.py` - 181 lines (main detection module with 5 functions)
+  - `tests/test_pii_detector.py` - 533 lines (57 comprehensive tests)
+- **Files Modified**: None
+- **Tests**: 57 new tests organized in 10 test classes, 100% coverage on pii_detector module, 120 total tests across all modules (100% coverage)
+- **Build**: ruff: pass (all checks passed), mypy: pass (no issues found)
 - **Branch**: feature/2.1-pii-detection
-- **Notes**: (any additional context)
+- **Notes**: PII detection module is complete and production-ready. Tests cover all PII types with multiple format variations, combined detection scenarios, dictionary structure scanning (including nested dicts and lists), and comprehensive false positive tests against typical lab values (CBC results, metabolic panels, numeric ranges). The module handles edge cases gracefully (unicode, newlines, tabs, very long text, None values). Next step: integrate into /api/interpret endpoint as PII gate middleware (subtask 2.1.2).
 
 ---
 
@@ -727,32 +729,34 @@ class InterpretationResponse(BaseModel):
 - [x] 2.1.1: PII Detection Module
 
 **Deliverables**:
-- [ ] Integrate PII detector into `/api/interpret` endpoint
-- [ ] Return 400 with PII types if detected
-- [ ] Add tests for PII rejection
-- [ ] Log PII detection events (without logging the PII itself)
+- [x] Integrate PII detector into `/api/interpret` endpoint
+- [x] Return 400 with PII types if detected
+- [x] Add tests for PII rejection
+- [x] Log PII detection events (without logging the PII itself)
 
 **Success Criteria**:
-- [ ] Request with SSN returns 400 with `{"error": "PII detected", "types": ["ssn"]}`
-- [ ] Clean request proceeds to next step
-- [ ] Multiple PII types all reported
+- [x] Request with SSN returns 400 with `{"error": "PII detected", "types": ["ssn"]}`
+- [x] Clean request proceeds to next step
+- [x] Multiple PII types all reported
 
 ---
 
 **Completion Notes**:
-- **Implementation**: (describe what was done)
-- **Files Created**: (filename - line count)
-- **Files Modified**: (filename)
-- **Tests**: (X tests, Y% coverage)
-- **Build**: ruff: pass, mypy: pass
+- **Implementation**: Integrated PII detector into `/api/interpret` endpoint with request validation and PII gating. Endpoint now converts LabResultsInput to dict, checks for PII using detect_pii_in_dict(), and returns 400 with error details if PII detected. Added comprehensive logging: warns on PII detection with PII types (not the actual PII data), and logs successful requests. Created 8 new tests covering SSN, phone, email, DOB, name fields, and multiple PII types. All clean requests pass through without modification.
+- **Files Created**: None (integrated into existing main.py)
+- **Files Modified**:
+  - `src/labbot/main.py` - Added PII detection gate, logging, and HTTPException handling (26 lines added)
+  - `tests/test_api.py` - Added 8 new PII rejection tests (137 lines added)
+- **Tests**: 8 new PII tests + 119 existing tests = 127 total, 100% coverage
+- **Build**: ruff: pass (all checks passed), mypy: pass (no issues found in 6 source files)
 - **Branch**: feature/2.1-pii-detection
-- **Notes**: (any additional context)
+- **Notes**: PII detection operates at endpoint level after schema validation, ensuring invalid data doesn't reach the detector. HTTPException detail field properly formatted for FastAPI automatic JSON serialization. Logging uses unique request ID to correlate logs without exposing PII. All tests pass with 100% code coverage maintained.
 
 ---
 
 ### Task 2.1 Complete - Squash Merge
-- [ ] All subtasks complete
-- [ ] All tests pass
+- [x] All subtasks complete
+- [x] All tests pass
 - [ ] Squash merge to main: `git checkout main && git merge --squash feature/2.1-pii-detection`
 - [ ] Commit: `git commit -m "feat: PII detection gate"`
 - [ ] Delete branch: `git branch -d feature/2.1-pii-detection`

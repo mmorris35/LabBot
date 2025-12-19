@@ -183,3 +183,132 @@ class TestInterpretEndpoint:
         assert response.status_code == 422
         data = response.json()
         assert "detail" in data
+
+    async def test_interpret_pii_detection_ssn(self, client: AsyncClient) -> None:
+        """Test that request with SSN in name field is rejected with 400."""
+        payload = {
+            "lab_values": [
+                {
+                    "name": "Hemoglobin SSN: 123-45-6789",
+                    "value": 14.5,
+                    "unit": "g/dL",
+                }
+            ]
+        }
+        response = await client.post("/api/interpret", json=payload)
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"]["error"] == "PII detected"
+        assert "ssn" in data["detail"]["types"]
+
+    async def test_interpret_pii_detection_phone(self, client: AsyncClient) -> None:
+        """Test that request with phone number is rejected with 400."""
+        payload = {
+            "lab_values": [
+                {
+                    "name": "Patient contact: 555-123-4567",
+                    "value": 123.0,
+                    "unit": "identifier",
+                }
+            ]
+        }
+        response = await client.post("/api/interpret", json=payload)
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"]["error"] == "PII detected"
+        assert "phone" in data["detail"]["types"]
+
+    async def test_interpret_pii_detection_email(self, client: AsyncClient) -> None:
+        """Test that request with email is rejected with 400."""
+        payload = {
+            "lab_values": [
+                {
+                    "name": "Patient email: patient@example.com",
+                    "value": 123.0,
+                    "unit": "contact",
+                }
+            ]
+        }
+        response = await client.post("/api/interpret", json=payload)
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"]["error"] == "PII detected"
+        assert "email" in data["detail"]["types"]
+
+    async def test_interpret_pii_detection_multiple_types(self, client: AsyncClient) -> None:
+        """Test that multiple PII types are all reported."""
+        payload = {
+            "lab_values": [
+                {
+                    "name": "Contact: john@example.com, phone 555-123-4567",
+                    "value": 123.0,
+                    "unit": "mixed",
+                }
+            ]
+        }
+        response = await client.post("/api/interpret", json=payload)
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"]["error"] == "PII detected"
+        detected_types = data["detail"]["types"]
+        assert "email" in detected_types
+        assert "phone" in detected_types
+
+    async def test_interpret_pii_detection_dob(self, client: AsyncClient) -> None:
+        """Test that request with date of birth is rejected with 400."""
+        payload = {
+            "lab_values": [
+                {
+                    "name": "Patient DOB 12/31/1990",
+                    "value": 123.0,
+                    "unit": "date",
+                }
+            ]
+        }
+        response = await client.post("/api/interpret", json=payload)
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"]["error"] == "PII detected"
+        assert "dob" in data["detail"]["types"]
+
+    async def test_interpret_pii_detection_name_field(self, client: AsyncClient) -> None:
+        """Test that request with name field pattern is rejected with 400."""
+        payload = {
+            "lab_values": [
+                {
+                    "name": "patient_name: John Smith",
+                    "value": 123.0,
+                    "unit": "test",
+                }
+            ]
+        }
+        response = await client.post("/api/interpret", json=payload)
+        assert response.status_code == 400
+        data = response.json()
+        assert data["detail"]["error"] == "PII detected"
+        assert "name" in data["detail"]["types"]
+
+    async def test_interpret_clean_data_accepted(self, client: AsyncClient) -> None:
+        """Test that clean data without PII is accepted."""
+        payload = {
+            "lab_values": [
+                {
+                    "name": "Hemoglobin",
+                    "value": 14.5,
+                    "unit": "g/dL",
+                    "reference_min": 13.5,
+                    "reference_max": 17.5,
+                },
+                {
+                    "name": "White Blood Cell Count",
+                    "value": 7.2,
+                    "unit": "10^3/µL",
+                    "reference_min": 4.5,
+                    "reference_max": 11.0,
+                },
+            ]
+        }
+        response = await client.post("/api/interpret", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "processing"
