@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: LabBot - Lab Results Interpreter
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Runtime: python3.11
+    Architectures:
+      - x86_64
+
+Parameters:
+  AnthropicApiKey:
+    Type: String
+    NoEcho: true
+    Description: API key for Anthropic Claude API
+
+Resources:
+  LabBotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: labbot.main.handler
+      Runtime: python3.11
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          ANTHROPIC_API_KEY: !Ref AnthropicApiKey
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            ApiId: !Ref LabBotHttpApi
+      Layers:
+        - !Ref LabBotDependencies
+
+  LabBotHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: Prod
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+          - HEAD
+        AllowHeaders:
+          - '*'
+
+  LabBotDependencies:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: labbot-dependencies
+      ContentUri: src/
+      CompatibleRuntimes:
+        - python3.11
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${LabBotHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt LabBotFunction.Arn
+
+  FunctionName:
+    Description: Lambda function name
+    Value: !Ref LabBotFunction

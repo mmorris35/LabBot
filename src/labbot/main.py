@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from mangum import Mangum
 
 from labbot.config import settings
 from labbot.interpreter import interpret_lab_values
@@ -155,3 +156,7 @@ async def interpret(lab_results: LabResultsInput) -> InterpretationResponse:
             status_code=503,
             detail="Failed to process lab interpretation. Please try again later.",
         ) from error
+
+
+# AWS Lambda handler using Mangum for ASGI-to-WSGI conversion
+handler = Mangum(app)
