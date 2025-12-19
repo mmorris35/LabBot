@@ -31,7 +31,94 @@ Traditional development often jumps straight to code. This project demonstrates:
 <!-- Claude Code will add entries here as subtasks are completed -->
 
 ### Phase 0: Foundation
-<!-- Entries will be added during implementation -->
+
+## [2025-12-19 12:54] Subtask 0.1.2: Python Project Setup
+
+**Time Spent**: 15 minutes
+
+**What Was Done**:
+- Created `pyproject.toml` with hatchling build system and all required dependencies
+- Implemented `src/labbot/__init__.py` with version marker (0.1.0)
+- Created `src/labbot/main.py` with placeholder FastAPI application and CORS middleware
+- Added `.python-version` file specifying Python 3.11+
+- Created virtual environment using `python3 -m venv .venv`
+- Installed all dev dependencies via `pip install -e ".[dev]"` (hatchling, FastAPI, Pydantic, Anthropic, pytest, ruff, mypy, httpx)
+- Created `tests/__init__.py` for test package structure
+- Verified all imports work correctly using Python
+- Ran linting (ruff) and type checking (mypy) - all pass
+- Tested API endpoint using FastAPI TestClient - returns 200
+
+**Key Decisions**:
+- Used Python 3.12 (system default, satisfies >=3.11 requirement)
+- Applied `src/` layout pattern for proper package isolation and distribution
+- Modern pyproject.toml approach instead of setup.py for clarity and maintainability
+- Configured strict mypy and ruff settings early to enforce quality standards
+- All dependencies pinned with minimum versions for reproducibility
+
+**Challenges**:
+- Initial virtual environment path issues resolved using absolute paths
+- Confirmed .venv directory is properly excluded by existing .gitignore
+
+**Learnings**:
+- The src/ layout really does help with clean package structure
+- Using FastAPI TestClient is simpler than starting uvicorn for quick verification
+- Having pyproject.toml configured early with all tools removes future friction
+
+## [2025-12-19 13:02] Subtask 0.2.1: Linting and Type Checking
+
+**Time Spent**: 8 minutes
+
+**What Was Done**:
+- Verified ruff is properly configured in pyproject.toml (line-length: 100, rules: E, F, I, N, W, UP)
+- Verified mypy is properly configured in pyproject.toml (python_version: 3.11, strict: true)
+- Created tests/test_version.py with version verification test following exact plan specification
+- Ran `ruff check src/ tests/` successfully (All checks passed!)
+- Ran `mypy src/` successfully (Success: no issues found in 2 source files)
+- Ran `pytest tests/test_version.py -v` successfully (1 passed in 0.02s)
+
+**Key Decisions**:
+- Kept existing tests/__init__.py from previous setup task
+- Applied Google-style docstring format consistently
+- Used return type hints on all functions (-> None)
+- Followed naming convention with no single-letter variables
+
+**Challenges**:
+- None - all configuration was already in place from 0.1.2 task
+
+**Learnings**:
+- Having quality tools configured early (ruff, mypy) means no friction later
+- Simple integration tests (like test_version_exists) catch package structure issues
+- Strict mypy mode catches type issues early and prevents bugs
+
+## [2025-12-19 13:18] Subtask 0.2.2: CI/CD Pipeline
+
+**Time Spent**: 5 minutes
+
+**What Was Done**:
+- Created `.github/workflows/` directory structure
+- Created `.github/workflows/ci.yml` with three parallel jobs: lint, typecheck, and test
+- Each job runs on ubuntu-latest with Python 3.11 environment
+- Lint job runs `ruff check src/ tests/`
+- Typecheck job runs `mypy src/`
+- Test job installs all dev dependencies and runs `pytest tests/ -v --cov=labbot --cov-report=term-missing`
+- Updated README.md CI badge URL from placeholder (USER) to correct GitHub username (mmn)
+- Validated YAML syntax using Python yaml.safe_load
+- Verified all existing tests and linting still pass
+
+**Key Decisions**:
+- Used GitHub Actions for CI/CD (industry standard, GitHub-native)
+- Configured workflow to trigger on push to main and pull requests
+- Ran jobs in parallel for faster feedback (no inter-job dependencies)
+- Used v4 and v5 action versions for best stability and features
+- Set Python version to 3.11 (matches project requirement)
+
+**Challenges**:
+- None - straightforward YAML configuration following exact plan specification
+
+**Learnings**:
+- GitHub Actions workflows are simple and declarative
+- Parallel jobs provide immediate feedback without long sequential runs
+- Badge URL required GitHub username (discovered placeholder was generic "USER")
 
 ### Phase 1: Core API
 <!-- Entries will be added during implementation -->

@@ -2,7 +2,7 @@
 
 > **A case study in structured AI-assisted development**
 
-![CI](https://github.com/USER/labbot/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/mmn/labbot/actions/workflows/ci.yml/badge.svg)
 
 LabBot helps patients interpret their lab results in plain language. But this project is about more than the destination - it's about demonstrating how structured AI development planning transforms an idea into a working product.
 
