@@ -17,13 +17,13 @@ async def client() -> AsyncClient:
 
 
 async def test_root_endpoint(client: AsyncClient) -> None:
-    """Test root endpoint returns API info."""
+    """Test root endpoint serves HTML UI."""
     response = await client.get("/")
     assert response.status_code == 200
-    data = response.json()
-    assert data["message"] == "LabBot API"
-    assert "version" in data
-    assert data["version"] == "0.1.0"
+    assert response.headers["content-type"].startswith("text/html")
+    assert "LabBot" in response.text
+    assert "Lab Results Interpreter" in response.text
+    assert "<html" in response.text
 
 
 def test_app_metadata() -> None:

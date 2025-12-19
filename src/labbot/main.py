@@ -1,11 +1,14 @@
 """LabBot FastAPI application."""
 
 import logging
+from pathlib import Path
 from typing import Any
 
 from anthropic import APIError
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from labbot.config import settings
 from labbot.interpreter import interpret_lab_values
@@ -36,13 +39,31 @@ app.add_middleware(
     allow_headers=settings.cors_headers,
 )
 
+# Mount static files (HTML, CSS, JS)
+static_dir: Path = Path(__file__).parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+    logger.info(f"Static files mounted from {static_dir}")
+else:
+    logger.warning(f"Static directory not found at {static_dir}")
+
 logger.info("LabBot application initialized with CORS enabled")
 
 
-@app.get("/")
-async def root() -> dict[str, str]:
-    """Root endpoint with API info."""
-    return {"message": "LabBot API", "version": settings.app_version}
+@app.get("/", response_model=None)
+async def root() -> FileResponse | HTMLResponse:
+    """Root endpoint serving the main UI page.
+
+    Returns:
+        FileResponse | HTMLResponse: The index.html file or fallback HTML.
+    """
+    index_file: Path = Path(__file__).parent / "static" / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    # Fallback if static file not found
+    return HTMLResponse(
+        "<html><body><h1>LabBot</h1><p>Static files not found</p></body></html>"
+    )
 
 
 @app.get("/health")

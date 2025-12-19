@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabBot - Lab Results Interpreter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>LabBot</h1>
+            <p class="subtitle">Lab Results Interpreter</p>
+        </header>
+
+        <!-- Medical Disclaimer -->
+        <div class="disclaimer-banner">
+            <strong>MEDICAL DISCLAIMER:</strong> LabBot provides educational information only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider about your lab results.
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Input Section -->
+            <section class="input-section">
+                <h2>Enter Lab Results</h2>
+                <p class="description">Paste your lab results as JSON to get a plain-language interpretation. Start with the sample data to see the expected format.</p>
+
+                <!-- Sample Data Button -->
+                <button id="loadSampleButton" class="button button-secondary" type="button">
+                    Load Sample CBC Data
+                </button>
+
+                <!-- JSON Input Textarea -->
+                <div class="form-group">
+                    <label for="jsonInput">Lab Results (JSON)</label>
+                    <textarea
+                        id="jsonInput"
+                        class="textarea"
+                        placeholder="Paste JSON lab results here..."
+                        rows="12"
+                    ></textarea>
+                    <p class="help-text">Format: {"lab_values": [{"name": "...", "value": ..., "unit": "...", "reference_min": ..., "reference_max": ...}]}</p>
+                </div>
+
+                <!-- Submit Button -->
+                <button id="interpretButton" class="button button-primary" type="button">
+                    Interpret Results
+                </button>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <h2>Interpretation Results</h2>
+
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Interpreting your lab results...</p>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                <!-- Results Container -->
+                <div id="resultsContainer" class="results-container"></div>
+
+                <!-- Disclaimer in Results -->
+                <div id="resultDisclaimer" class="result-disclaimer" style="display: none;"></div>
+
+                <!-- Summary Section -->
+                <div id="summarySection" class="summary-section" style="display: none;">
+                    <h3>Summary</h3>
+                    <p id="summaryText"></p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 LabBot. Providing educational health information.</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

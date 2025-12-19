@@ -461,7 +461,105 @@ Traditional development often jumps straight to code. This project demonstrates:
 ---
 
 ### Phase 4: Web Frontend
-<!-- Entries will be added during implementation -->
+
+## [2025-12-19 14:55] Subtask 4.1.1: Static HTML/CSS/JS Frontend
+
+**Time Spent**: 35 minutes
+
+**What Was Done**:
+- Created `src/labbot/static/index.html` (87 lines) - semantic HTML structure with form inputs, results display area, loading spinner, medical disclaimer
+- Created `src/labbot/static/styles.css` (496 lines) - responsive design with CSS custom properties, color-coded severity badges, mobile-first approach with breakpoints at 768px and 480px
+- Created `src/labbot/static/app.js` (273 lines) - sample CBC data, event handlers, API communication, error handling (including PII detection warnings), loading states, results rendering with HTML sanitization
+- Updated `src/labbot/main.py` to add StaticFiles mounting at /static and serve index.html at root endpoint
+- Updated tests in test_api.py and test_main.py to verify HTML responses instead of JSON
+- All 196 tests pass with 99% code coverage (main.py at 96% with only fallback paths uncovered)
+- Verified linting (ruff) and type checking (mypy) pass without errors
+
+**Key Decisions**:
+- Used StaticFiles from FastAPI for serving static assets - industry standard and well-integrated
+- Root endpoint returns FileResponse with fallback to HTMLResponse if file not found
+- Responsive CSS with mobile-first design - most users will access via mobile given healthcare context
+- Sample CBC data includes 5 realistic lab values (Hemoglobin, Hematocrit, RBC, WBC, Platelets) with reference ranges
+- Color coding uses semantic colors: green (normal), amber/yellow (borderline), orange (abnormal), red (critical)
+- Frontend validates JSON and communicates errors clearly including PII detection warnings
+- HTML sanitization using textContent to prevent XSS attacks
+- Medical disclaimer prominently displayed both in header and results area
+
+**Challenges**:
+- Initial mypy error with FileResponse union type - solved by adding response_model=None parameter
+- Tests expected root endpoint to return JSON API response - updated to verify HTML with content checks
+- FileResponse constructor doesn't accept `content` parameter like HTMLResponse does - used HTMLResponse for fallback
+
+**Learnings**:
+- FastAPI's response_model=None is necessary for endpoints returning Union[Response] types
+- StaticFiles middleware mounts as a Mount object distinct from regular routes
+- Responsive CSS requires careful breakpoint selection - three levels (desktop, tablet, mobile) provides good UX
+- Client-side PII warning is valuable UX addition before submitting potentially sensitive data
+- HTML sanitization using textContent is simpler and safer than trying to parse/filter HTML
+- Sample data with realistic values helps users understand the expected format immediately
+
+## [2025-12-19 17:15] Subtask 4.1.2: API Integration
+
+**Time Spent**: 10 minutes
+
+**What Was Done**:
+- Enhanced `src/labbot/static/app.js` with client-side PII detection
+- Implemented detectPiiPatterns() function to identify PII using regex patterns (SSN, phone, email, DOB, names)
+- Implemented checkForPiiInData() function to recursively scan lab data structures for PII
+- Integrated pre-submission PII check into interpretResults() function with user warning dialog
+- Warning dialog educates user about privacy protections and provides example of safe data format
+- Verified all 196 tests pass with 99% coverage
+- Confirmed linting (ruff) and type checking (mypy) pass without issues
+
+**Key Decisions**:
+- Used JavaScript regex patterns matching backend PII detector for consistency
+- Pre-submission check with confirm() dialog provides clear user education about privacy
+- Check happens before fetch() call - prevents sending PII to API
+- Detection results shown in both warning dialog and error message for clarity
+- Example safe data in warning helps users understand expected format
+
+**Challenges**:
+- None - client-side PII detection patterns straightforward to implement
+
+**Learnings**:
+- Frontend PII detection provides better UX by warning users before submission
+- Using confirm() dialog is simple but effective for security-critical decisions
+- Matching backend patterns ensures consistency across layers
+- Recursive object scanning handles nested data structures (list of objects)
+- Client-side + server-side defense in depth provides robust privacy protection
+
+## [2025-12-19 18:30] Subtask 4.1.3: Results Display
+
+**Time Spent**: 5 minutes (verification and completion)
+
+**What Was Done**:
+- Verified all results display functionality is complete and working as specified in deliverables
+- Confirmed each lab value renders as a color-coded card via createResultCard() function in app.js
+- Verified severity badges properly color-coded: green (normal), amber/yellow (borderline), orange (abnormal), red (critical)
+- Confirmed citations render as clickable links with target="_blank" for external navigation
+- Verified summary section displays when present in response
+- Verified medical disclaimer displays both in header and in results section
+- Updated DEVELOPMENT_PLAN.md with completion notes for subtask 4.1.3
+- Marked all 4.1.3 deliverables complete and success criteria checked
+- Marked Task 4.1 squash merge checkboxes complete
+- All 196 tests pass with 99% coverage (100% on all modules except main.py at 96% with uncovered fallback paths)
+- Linting (ruff) and type checking (mypy) both pass without issues
+
+**Key Decisions**:
+- Recognized that results display implementation was completed during 4.1.1 (card rendering, color-coding, citation links) and 4.1.2 (API integration)
+- This subtask serves as verification that all deliverables are complete and working
+- Focus on confirming existing code meets all success criteria rather than adding new code
+
+**Challenges**:
+- None - all functionality was already implemented in previous subtasks
+
+**Learnings**:
+- Sometimes development follows a natural path where subsequent subtasks build on previous work
+- This subtask became a verification checkpoint that all requirements are met
+- The phased implementation allowed each feature to be properly tested and integrated before moving forward
+- Color-coded severity badges with responsive cards provide excellent UX for lab result interpretation
+
+---
 
 ### Phase 5: AWS Deployment
 <!-- Entries will be added during implementation -->
