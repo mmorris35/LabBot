@@ -667,9 +667,9 @@ class InterpretationResponse(BaseModel):
 ### Task 1.2 Complete - Squash Merge
 - [x] All subtasks complete
 - [x] All tests pass
-- [ ] Squash merge to main: `git checkout main && git merge --squash feature/1.2-lab-schema`
-- [ ] Commit: `git commit -m "feat: lab results schema and validation"`
-- [ ] Delete branch: `git branch -d feature/1.2-lab-schema`
+- [x] Squash merge to main: `git checkout main && git merge --squash feature/1.2-lab-schema`
+- [x] Commit: `git commit -m "feat: lab results schema and validation"`
+- [x] Delete branch: `git branch -d feature/1.2-lab-schema`
 
 ---
 
