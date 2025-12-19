@@ -177,6 +177,75 @@ Traditional development often jumps straight to code. This project demonstrates:
 - Simple endpoints that return JSON are easy to test and verify
 - Coverage naturally reaches 100% with proper endpoint testing
 
+## [2025-12-19 13:35] Subtask 1.2.1: Lab Results Schema
+
+**Time Spent**: 20 minutes
+
+**What Was Done**:
+- Created `src/labbot/schemas.py` with 5 Pydantic models: LabValue, LabResultsInput, SeverityLevel, InterpretedValue, InterpretationResponse
+- Implemented comprehensive validation with Field constraints (min_length, max_length, descriptions)
+- Added Pydantic v2 ConfigDict for json_schema_extra examples to eliminate deprecation warnings
+- Created `tests/test_schemas.py` with 34 comprehensive tests organized in 5 test classes
+- Tests cover valid construction, missing fields, invalid types, empty inputs, boundary cases, and all enum values
+- All tests pass with 100% coverage on the schemas module
+- Verified ruff linting passes (all checks passed)
+- Verified mypy type checking passes (no issues found in 5 source files)
+- Full test suite: 53 tests, 100% coverage across all modules
+
+**Key Decisions**:
+- Used ConfigDict instead of deprecated Config class for Pydantic v2 compliance
+- Made reference_min and reference_max optional (None allowed) to support different test types
+- Used union type (float | None) instead of Optional for modern Python 3.10+ syntax
+- Created SeverityLevel as enum for type safety and auto-validation
+- Set max_length=50 on lab_values list to prevent excessively large requests
+- Organized tests into logical classes by model for clarity and maintainability
+
+**Challenges**:
+- Initial Pydantic deprecation warnings from using Config class - resolved with ConfigDict migration
+
+**Learnings**:
+- Pydantic v2 ConfigDict approach is cleaner than the old Config class pattern
+- Organizing tests by model class (TestLabValue, TestLabResultsInput, etc.) improves readability
+- Testing edge cases (empty lists, boundary values, missing required fields) catches validation errors early
+- Field descriptions and examples automatically propagate to OpenAPI schema generation
+
+## [2025-12-19 14:12] Subtask 1.2.2: Input Validation Endpoint
+
+**Time Spent**: 12 minutes
+
+**What Was Done**:
+- Added POST `/api/interpret` endpoint to `src/labbot/main.py` with LabResultsInput parameter
+- FastAPI's Pydantic integration automatically validates input and returns 422 for validation errors
+- Created comprehensive test suite in `tests/test_api.py` with 10 new tests covering:
+  - Valid input with single and multiple lab values
+  - Missing required fields (lab_values)
+  - Empty lists validation
+  - Missing required nested fields (name, value, unit)
+  - Type validation (string instead of float)
+  - Malformed JSON
+  - Optional fields (reference_min, reference_max)
+  - Max lab values constraint (50 limit)
+  - Exceeding max lab values
+- All 63 tests pass with 100% coverage
+- Verified ruff linting passes (all checks passed)
+- Verified mypy type checking passes (no issues found in 5 source files)
+
+**Key Decisions**:
+- Used FastAPI's built-in Pydantic validation instead of manual validation
+- Endpoint is stub implementation returning "processing" status for now
+- Returns HTTP 200 for valid input (stub endpoint will be completed in phase 3 with Claude integration)
+- Organized new tests in TestInterpretEndpoint class for clarity
+- Tested boundary conditions: exactly 50 items passes, 51 items fails
+
+**Challenges**:
+- None - FastAPI handles all validation automatically when parameter is typed with Pydantic model
+
+**Learnings**:
+- FastAPI's automatic validation based on Pydantic models is extremely powerful and eliminates boilerplate
+- Testing validation requires checking response status codes and error details in response["detail"]
+- Pydantic's field constraints (min_length, max_length) are enforced automatically without additional code
+- Having a clear schema definition first (1.2.1) made the endpoint implementation trivial
+
 ### Phase 2: PII Detection
 <!-- Entries will be added during implementation -->
 

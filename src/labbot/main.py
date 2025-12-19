@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from labbot.config import settings
 from labbot.logging_config import setup_logging
+from labbot.schemas import LabResultsInput
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -48,3 +49,25 @@ async def health() -> dict[str, str]:
         Dictionary with status field set to "healthy".
     """
     return {"status": "healthy"}
+
+
+@app.post("/api/interpret")
+async def interpret(lab_results: LabResultsInput) -> dict[str, str]:
+    """Interpret lab results.
+
+    This endpoint validates input against the LabResultsInput schema.
+    Invalid input automatically returns 422 with validation details.
+
+    Args:
+        lab_results: Validated lab results input containing list of lab values.
+
+    Returns:
+        Dictionary with status message (stub implementation).
+
+    Raises:
+        HTTPException: FastAPI automatically returns 422 for validation errors.
+    """
+    logger.info(
+        f"Received interpretation request with {len(lab_results.lab_values)} lab values"
+    )
+    return {"status": "processing", "message": "Interpretation endpoint received valid input"}

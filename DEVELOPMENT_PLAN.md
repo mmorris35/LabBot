@@ -531,11 +531,11 @@ async def test_health(client: AsyncClient) -> None:
 ---
 
 ### Task 1.1 Complete - Squash Merge
-- [ ] All subtasks complete
-- [ ] All tests pass
-- [ ] Squash merge to main: `git checkout main && git merge --squash feature/1.1-fastapi-app`
-- [ ] Commit: `git commit -m "feat: FastAPI application with health check"`
-- [ ] Delete branch: `git branch -d feature/1.1-fastapi-app`
+- [x] All subtasks complete
+- [x] All tests pass
+- [x] Squash merge to main: `git checkout main && git merge --squash feature/1.1-fastapi-app`
+- [x] Commit: `git commit -m "feat: FastAPI application with health check"`
+- [x] Delete branch: `git branch -d feature/1.1-fastapi-app`
 
 ---
 
@@ -551,11 +551,11 @@ async def test_health(client: AsyncClient) -> None:
 - [x] 1.1.2: Health Check Endpoint
 
 **Deliverables**:
-- [ ] Create `src/labbot/schemas.py` with Pydantic models
-- [ ] Define `LabValue` model (name, value, unit, reference_range)
-- [ ] Define `LabResultsInput` model (list of LabValue)
-- [ ] Define `InterpretedResult` model (for responses)
-- [ ] Create `tests/test_schemas.py` with validation tests
+- [x] Create `src/labbot/schemas.py` with Pydantic models
+- [x] Define `LabValue` model (name, value, unit, reference_range)
+- [x] Define `LabResultsInput` model (list of LabValue)
+- [x] Define `InterpretedResult` model (for responses)
+- [x] Create `tests/test_schemas.py` with validation tests
 
 **schemas.py structure**:
 ```python
@@ -614,20 +614,22 @@ class InterpretationResponse(BaseModel):
 ```
 
 **Success Criteria**:
-- [ ] All models have proper type hints
-- [ ] Validation rejects invalid inputs
-- [ ] Tests cover valid and invalid cases
+- [x] All models have proper type hints
+- [x] Validation rejects invalid inputs
+- [x] Tests cover valid and invalid cases
 
 ---
 
 **Completion Notes**:
-- **Implementation**: (describe what was done)
-- **Files Created**: (filename - line count)
-- **Files Modified**: (filename)
-- **Tests**: (X tests, Y% coverage)
-- **Build**: ruff: pass, mypy: pass
+- **Implementation**: Created complete Pydantic schema module with 5 models (LabValue, LabResultsInput, SeverityLevel, InterpretedValue, InterpretationResponse). All models include proper type hints, Field descriptions, and validation constraints. Used ConfigDict for Pydantic v2 best practices. Created comprehensive test suite with 34 tests covering validation, edge cases, and enum values.
+- **Files Created**:
+  - `src/labbot/schemas.py` - 120 lines
+  - `tests/test_schemas.py` - 378 lines
+- **Files Modified**: None
+- **Tests**: 34 new tests, 100% coverage on schemas module
+- **Build**: ruff: pass (all checks passed), mypy: pass (no issues found in 5 source files), pytest: 53/53 pass
 - **Branch**: feature/1.2-lab-schema
-- **Notes**: (any additional context)
+- **Notes**: All validation tests pass including edge cases (empty lists, exceeding max length, missing fields, invalid types). Models integrate with FastAPI/Pydantic for automatic OpenAPI schema generation. ConfigDict eliminates deprecation warnings for Pydantic v2 compliance.
 
 ---
 
@@ -637,32 +639,34 @@ class InterpretationResponse(BaseModel):
 - [x] 1.2.1: Lab Results Schema
 
 **Deliverables**:
-- [ ] Add POST `/api/interpret` endpoint (stub)
-- [ ] Validate input against `LabResultsInput` schema
-- [ ] Return 422 for invalid input with details
-- [ ] Add tests for validation
+- [x] Add POST `/api/interpret` endpoint (stub)
+- [x] Validate input against `LabResultsInput` schema
+- [x] Return 422 for invalid input with details
+- [x] Add tests for validation
 
 **Success Criteria**:
-- [ ] Valid JSON accepted, returns 200
-- [ ] Invalid JSON returns 422 with errors
-- [ ] Missing fields return 422 with field names
+- [x] Valid JSON accepted, returns 200
+- [x] Invalid JSON returns 422 with errors
+- [x] Missing fields return 422 with field names
 
 ---
 
 **Completion Notes**:
-- **Implementation**: (describe what was done)
-- **Files Created**: (filename - line count)
-- **Files Modified**: (filename)
-- **Tests**: (X tests, Y% coverage)
-- **Build**: ruff: pass, mypy: pass
+- **Implementation**: Added POST `/api/interpret` endpoint to main.py that accepts LabResultsInput. Endpoint validates input automatically (FastAPI returns 422 for validation errors). Created comprehensive test suite with 10 new tests covering valid input, multiple values, missing fields, invalid types, empty lists, optional fields, and max length constraints.
+- **Files Created**: None (tests added to existing test_api.py)
+- **Files Modified**:
+  - `src/labbot/main.py` - Added POST `/api/interpret` endpoint with LabResultsInput parameter
+  - `tests/test_api.py` - Added 10 new tests in TestInterpretEndpoint class
+- **Tests**: 10 new tests + 2 existing endpoint tests + 51 prior tests = 63 total, 100% coverage
+- **Build**: ruff: pass (all checks passed), mypy: pass (no issues found in 5 source files)
 - **Branch**: feature/1.2-lab-schema
-- **Notes**: (any additional context)
+- **Notes**: FastAPI's automatic validation via Pydantic model parameters handles all 422 responses. Tests verify all validation rules: missing required fields, empty lists, type mismatches, max length constraints, and optional fields. Endpoint is stub implementation returning status "processing" for now (full interpretation logic in phase 3).
 
 ---
 
 ### Task 1.2 Complete - Squash Merge
-- [ ] All subtasks complete
-- [ ] All tests pass
+- [x] All subtasks complete
+- [x] All tests pass
 - [ ] Squash merge to main: `git checkout main && git merge --squash feature/1.2-lab-schema`
 - [ ] Commit: `git commit -m "feat: lab results schema and validation"`
 - [ ] Delete branch: `git branch -d feature/1.2-lab-schema`
