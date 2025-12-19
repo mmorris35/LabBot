@@ -120,8 +120,62 @@ Traditional development often jumps straight to code. This project demonstrates:
 - Parallel jobs provide immediate feedback without long sequential runs
 - Badge URL required GitHub username (discovered placeholder was generic "USER")
 
+## [2025-12-19 13:25] Subtask 1.1.1: FastAPI Application Structure
+
+**Time Spent**: 25 minutes
+
+**What Was Done**:
+- Created `src/labbot/config.py` with Settings class for environment-based configuration
+- Implemented centralized logging in `src/labbot/logging_config.py` with dictConfig
+- Updated `src/labbot/main.py` to integrate config and logging, added medical disclaimer
+- Created comprehensive test suites: test_config.py, test_main.py, test_logging_config.py
+- Verified all tests pass with 100% code coverage
+- Confirmed linting (ruff) and type checking (mypy) pass without errors
+
+**Key Decisions**:
+- Used simple Settings class (not pydantic-settings) to avoid adding extra dependencies
+- Environment variables (ANTHROPIC_API_KEY, LOG_LEVEL) for runtime flexibility
+- CORS configured for localhost development (ports 3000, 8000) and local IPs
+- Medical disclaimer embedded in FastAPI app description for OpenAPI visibility
+- Logging initialized at module import time with structured configuration
+
+**Challenges**:
+- None - straightforward implementation following plan specification
+
+**Learnings**:
+- Proper configuration management separates concerns and enables environment-specific settings
+- Centralized logging setup simplifies debugging and prevents configuration duplication
+- Writing tests first-class (alongside implementation) ensures high coverage naturally
+- FastAPI's built-in OpenAPI integration automatically includes app metadata including disclaimer
+
 ### Phase 1: Core API
-<!-- Entries will be added during implementation -->
+
+## [2025-12-19 13:08] Subtask 1.1.2: Health Check Endpoint
+
+**Time Spent**: 10 minutes
+
+**What Was Done**:
+- Added `/health` endpoint to FastAPI application returning `{"status": "healthy"}`
+- Created `tests/test_api.py` with comprehensive async test suite
+- Implemented test fixtures for AsyncClient and ASGITransport
+- Added tests for both `/` root endpoint and `/health` endpoint
+- Verified all 19 tests pass with 100% coverage on main.py
+- Confirmed linting (ruff) and type checking (mypy) pass without errors
+
+**Key Decisions**:
+- Used async endpoint to align with FastAPI best practices
+- Created separate test_api.py file for endpoint testing (following plan)
+- Used AsyncClient with ASGITransport for realistic async testing
+- Kept endpoint minimal and focused (just returns status)
+
+**Challenges**:
+- None - straightforward implementation following plan specification
+
+**Learnings**:
+- Dedicated test files for different aspects (test_api.py for endpoints) keep test organization clean
+- Async test patterns with AsyncClient and ASGITransport are well-supported by pytest and httpx
+- Simple endpoints that return JSON are easy to test and verify
+- Coverage naturally reaches 100% with proper endpoint testing
 
 ### Phase 2: PII Detection
 <!-- Entries will be added during implementation -->
