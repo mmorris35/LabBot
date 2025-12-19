@@ -333,7 +333,132 @@ Traditional development often jumps straight to code. This project demonstrates:
 ## Phase 2: PII Detection Complete (2 of 2 subtasks)
 
 ### Phase 3: AI Interpretation
-<!-- Entries will be added during implementation -->
+
+## [2025-12-19 15:30] Subtask 3.1.1: Claude API Integration
+
+**Time Spent**: 45 minutes
+
+**What Was Done**:
+- Created `src/labbot/interpreter.py` with interpret_lab_values() function (162 lines)
+- Implemented Claude Haiku API integration for cost-efficient lab result interpretation
+- Created comprehensive prompt template with structured JSON output format
+- Implemented robust error handling for API failures, invalid JSON, and missing API key
+- Created context manager helper (mock_anthropic_with_api_key) for efficient test mocking
+- Implemented 18 comprehensive tests organized in 5 test classes:
+  - TestInterpretLabValuesBasic: single/multiple values, optional fields, no reference ranges
+  - TestInterpretLabValuesSeverity: normal, borderline, abnormal, critical severity levels
+  - TestInterpretLabValuesAPIErrors: API errors, invalid JSON, missing key, malformed responses
+  - TestInterpretLabValuesPrompt: model verification, max_tokens, prompt content, API key initialization
+  - TestInterpretLabValuesIntegration: realistic CBC panel and mixed severity scenarios
+- Achieved 100% code coverage on interpreter module and maintained 100% coverage across all modules
+
+**Key Decisions**:
+- Used Claude Haiku (claude-3-haiku-20240307) model for cost efficiency (Haiku is 90% cheaper than Sonnet)
+- Created INTERPRETATION_PROMPT_TEMPLATE with clear JSON structure to ensure parseable responses
+- Separated API error handling from endpoint level (raising exceptions rather than returning 503) - allows endpoint to decide error response format
+- Used contextmanager pattern in tests to reduce code duplication and improve readability
+- Severity levels mapped to 4 categories (normal, borderline, abnormal, critical) to guide Claude's classification
+- Made reference_min and reference_max optional to support tests without reference ranges
+- Prompt includes detailed guidance on severity determination (1-10% deviation = borderline, >10% = abnormal)
+
+**Challenges**:
+- Initially had to patch settings object before calling interpret_lab_values() - solved with context manager helper
+- Ruff complained about line length in prompt template - fixed by wrapping string assignment in parentheses
+- APIError constructor signature required `request` parameter (not `response`) - fixed by checking documentation
+- Had to import Iterator from collections.abc instead of typing for Python 3.10+ compatibility
+
+**Learnings**:
+- Claude Haiku model is perfect for structured tasks with tight cost constraints
+- Context managers elegantly handle mock setup/teardown and reduce test boilerplate
+- Detailed prompts with severity guidance help Claude produce consistent, correct classifications
+- Testing should verify not just success cases but also prompt content, model selection, and API initialization
+- 100% coverage across all modules signals the test suite is comprehensive and catches integration issues
+- Raising exceptions from utility functions and handling them at endpoint level provides better separation of concerns
+
+## [2025-12-19 14:15] Subtask 3.1.2: Lab Value Interpreter (Endpoint)
+
+**Time Spent**: 45 minutes
+
+**What Was Done**:
+- Completed `/api/interpret` endpoint implementation with full pipeline: schema validation → PII detection → Claude API interpretation
+- Updated `src/labbot/main.py` with imports (APIError, interpret_lab_values, InterpretationResponse)
+- Rewrote endpoint from stub (returning status: "processing") to full implementation with error handling
+- Endpoint now calls interpret_lab_values() from interpreter module to get InterpretationResponse
+- Returns 400 for PII detection, 503 for API errors (APIError or ValueError), 422 for validation errors
+- Created mock_anthropic_for_endpoint() context manager for efficient endpoint testing with mocked Claude API
+- Updated 3 existing tests to use mock: test_interpret_valid_input, test_interpret_multiple_values, test_interpret_optional_fields
+- Added 5 critical new integration tests:
+  - test_interpret_api_error_returns_503: Verifies API errors return 503
+  - test_interpret_invalid_json_response_returns_503: Verifies invalid JSON returns 503
+  - test_interpret_response_includes_all_fields: Verifies all required/optional fields in response
+  - test_interpret_severity_levels_preserved: Tests all 4 severity levels (normal, borderline, abnormal, critical)
+  - test_interpret_citations_included: Verifies citations are properly returned
+  - test_interpret_disclaimer_always_present: Verifies disclaimer is always in response
+- All 25 endpoint tests pass with 100% coverage
+- Full test suite: 151 tests total with 100% coverage across all modules
+- Verified ruff linting passes (all checks passed)
+- Verified mypy type checking passes (no issues found in 7 source files)
+- Manual end-to-end test confirms pipeline works: schema validation → PII check → interpreter call
+
+**Key Decisions**:
+- Added APIError import to main.py to catch API-specific errors and distinguish from other ValueError scenarios
+- Error handling at endpoint level allows specialized error codes (400 for PII, 503 for API errors)
+- Mock context manager handles Pydantic InterpretationResponse model serialization properly
+- Tests use structured mock responses (json.dumps of valid response structure) for realistic testing
+- Fixed APIError mock to include required parameters (message, request, body)
+- Fixed line length issue by wrapping long explanation text across multiple strings
+
+**Challenges**:
+- Initial test failures due to stub tests expecting "status": "processing" response - updated all tests to use mock context manager
+- two tests (test_interpret_optional_fields, test_interpret_max_lab_values) weren't using the mock, failing with 503 because no API key - fixed by wrapping with mock context manager
+- APIError constructor requires request and body parameters - discovered via failed test and fixed with proper mock initialization
+
+**Learnings**:
+- Integration tests with mocked external dependencies are essential for endpoint testing without live API access
+- Context managers elegantly reduce code duplication in test fixtures and mock setup
+- Testing full pipeline (validation → PII → interpretation) requires realistic response mocking
+- All error scenarios (API errors, invalid JSON, PII detection, validation) must be tested at endpoint level
+- 100% coverage across all modules indicates comprehensive testing of integration points
+- The full three-layer pipeline (schema validation → PII gate → Claude interpretation) works correctly end-to-end
+
+## [2025-12-19 16:00] Subtask 3.1.3: Citation Generator
+
+**Time Spent**: 30 minutes
+
+**What Was Done**:
+- Created `src/labbot/citations.py` with CitationSource class for representing medical citation sources
+- Defined 3 authoritative citation sources: Mayo Clinic, NIH MedlinePlus, and generic medical reference
+- Built comprehensive mapping of 100+ common lab test names to citation sources (CBC, metabolic panel, lipid panel, liver function, kidney function, thyroid, cardiac markers, hormones, inflammatory markers, coagulation tests)
+- Implemented normalize_test_name() for case-insensitive test name lookup with whitespace handling
+- Implemented get_citation_for_test() to return preferred source citation with fallback to generic reference
+- Implemented get_all_citations_for_test() to return all available citations for a test
+- Implemented is_test_known() to check if a test has specific citations
+- Created `tests/test_citations.py` with 45 comprehensive tests organized in 8 test classes
+- Achieved 100% code coverage on citations module while maintaining 100% coverage across all modules (196 tests total)
+- All quality checks pass: ruff (all checks passed), mypy (no issues found in 8 source files)
+
+**Key Decisions**:
+- Created CitationSource class for extensibility (easy to add new sources)
+- Mapped 100+ common tests covering major lab panels for comprehensive coverage
+- Used normalize_test_name() to support case-insensitive lookup and multiple test name variations
+- Return preferred source first (Mayo Clinic for most tests) but provide get_all_citations_for_test() for users wanting alternatives
+- Graceful fallback to generic NIH MedlinePlus reference for unknown tests (instead of failing)
+- Used HTTPS URLs for all sources for security
+
+**Challenges**:
+- Duplicate "tsh" key in mapping - removed second occurrence in Hormone Tests section (already in Thyroid Function Tests)
+- Unused Optional import and pytest import - removed both
+- Variable shadowing issue (citation defined in both if and else branches) - renamed to citation_text and generic_citation
+- Import sorting needed adjustment to put constants before classes and functions
+
+**Learnings**:
+- Comprehensive test mapping makes the module production-ready for common lab tests
+- CitationSource class abstraction makes it easy to test individual components and add new sources
+- 100% coverage across all modules (after adding citations tests) signals comprehensive testing
+- Case-insensitive normalization is essential for real-world usage where test names vary
+- The combination of known test mapping + graceful fallback provides good user experience
+
+---
 
 ### Phase 4: Web Frontend
 <!-- Entries will be added during implementation -->

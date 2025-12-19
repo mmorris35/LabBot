@@ -3,13 +3,15 @@
 import logging
 from typing import Any
 
+from anthropic import APIError
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from labbot.config import settings
+from labbot.interpreter import interpret_lab_values
 from labbot.logging_config import setup_logging
 from labbot.pii_detector import detect_pii_in_dict
-from labbot.schemas import LabResultsInput
+from labbot.schemas import InterpretationResponse, LabResultsInput
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -54,21 +56,28 @@ async def health() -> dict[str, str]:
 
 
 @app.post("/api/interpret")
-async def interpret(lab_results: LabResultsInput) -> dict[str, str]:
+async def interpret(lab_results: LabResultsInput) -> InterpretationResponse:
     """Interpret lab results.
 
     This endpoint validates input against the LabResultsInput schema and checks
     for personally identifiable information (PII). If PII is detected, returns
-    a 400 error without processing the request.
+    a 400 error without processing the request. Clean data is sent to Claude API
+    for interpretation.
+
+    Pipeline:
+    1. Schema validation (automatic via Pydantic)
+    2. PII detection gate (returns 400 if detected)
+    3. Claude API interpretation (returns results or 503 on error)
 
     Args:
         lab_results: Validated lab results input containing list of lab values.
 
     Returns:
-        Dictionary with status message (stub implementation for non-PII data).
+        InterpretationResponse with interpreted results, disclaimer, and summary.
 
     Raises:
         HTTPException: 400 if PII is detected in the input.
+        HTTPException: 503 if Claude API returns an error.
         HTTPException: FastAPI automatically returns 422 for validation errors.
     """
     request_log_id: str = f"interpret-{id(lab_results)}"
@@ -97,4 +106,31 @@ async def interpret(lab_results: LabResultsInput) -> dict[str, str]:
         f"Received interpretation request [{request_log_id}] with "
         f"{len(lab_results.lab_values)} lab values (PII check passed)"
     )
-    return {"status": "processing", "message": "Interpretation endpoint received valid input"}
+
+    # Call Claude API for interpretation
+    try:
+        interpretation_response: InterpretationResponse = interpret_lab_values(
+            lab_results.lab_values
+        )
+        logger.info(
+            f"Successfully interpreted {len(lab_results.lab_values)} lab values "
+            f"[{request_log_id}]"
+        )
+        return interpretation_response
+
+    except APIError as api_error:
+        logger.error(
+            f"Claude API error while interpreting lab values [{request_log_id}]: {api_error}"
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="Failed to interpret lab results due to API error. Please try again later.",
+        ) from api_error
+    except (ValueError, KeyError) as error:
+        logger.error(
+            f"Error processing Claude API response [{request_log_id}]: {error}"
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="Failed to process lab interpretation. Please try again later.",
+        ) from error
