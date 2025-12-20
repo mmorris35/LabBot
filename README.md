@@ -1,102 +1,216 @@
 # LabBot
 
-> **A case study in structured AI-assisted development**
+> **From idea to product: A journey in structured AI-assisted development**
 
 ![CI](https://github.com/mmn/labbot/actions/workflows/ci.yml/badge.svg)
 
-LabBot helps patients interpret their lab results in plain language. But this project is about more than the destination - it's about demonstrating how structured AI development planning transforms an idea into a working product.
+LabBot helps patients interpret their lab results in plain language. But this project is about more than the destination—it's a showcase of how the **DevPlan methodology** transforms a vague idea into a fully deployed application, with every step documented.
 
 ---
 
-## The Problem
+## The Story
 
-Patients receive lab results with cryptic values like "Hemoglobin: 14.5 g/dL" and no context. They turn to Google, often finding alarming misinformation. Healthcare providers are overwhelmed and can't explain every result in detail.
+It started with a simple problem: patients get lab results filled with cryptic values like "Hemoglobin: 14.5 g/dL" and have no idea what they mean. They Google it, find alarming misinformation, and panic. Healthcare providers are too overwhelmed to explain every result.
 
-**LabBot bridges this gap** by providing:
+The idea was clear. The path to building it? That's where most projects stall.
+
+### Enter DevPlan
+
+The [DevPlan Builder](https://github.com/mmorris35/ClaudeCode-DevPlanBuilder) is a methodology and MCP server that bridges the gap between "I have an idea" and "I have working code." It structures AI-assisted development so that Claude Code can execute complex projects methodically, session after session.
+
+**Here's how LabBot came to life:**
+
+---
+
+## The Journey: From Idea to Deployment
+
+```mermaid
+flowchart LR
+    subgraph Phase1[" 1. Capture"]
+        A[Idea] --> B[Interview]
+        B --> C[PROJECT_BRIEF.md]
+    end
+
+    subgraph Phase2[" 2. Plan"]
+        C --> D[DevPlan MCP]
+        D --> E[DEVELOPMENT_PLAN.md]
+        D --> F[CLAUDE.md]
+    end
+
+    subgraph Phase3[" 3. Build"]
+        E --> G[Execute Subtasks]
+        G --> H[DEVLOG.md]
+        G --> I[Tests Pass]
+    end
+
+    subgraph Phase4[" 4. Ship"]
+        I --> J[GitHub Actions]
+        J --> K[AWS Lambda]
+    end
+
+    style Phase1 fill:#e1f5fe
+    style Phase2 fill:#fff3e0
+    style Phase3 fill:#e8f5e9
+    style Phase4 fill:#f3e5f5
+```
+
+### Step 1: The Interview → [PROJECT_BRIEF.md](PROJECT_BRIEF.md)
+
+Instead of diving into code, the DevPlan MCP server guided an interview:
+
+```
+"What problem does this solve?"
+"Who are the target users?"
+"What are the must-have features vs nice-to-haves?"
+"What technology constraints exist?"
+```
+
+15 minutes of conversation produced a structured brief capturing everything needed to build LabBot—features, constraints, tech stack, success criteria.
+
+### Step 2: The Plan → [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)
+
+The brief was fed back into DevPlan, which generated a comprehensive implementation roadmap:
+
+- **5 phases** from foundation to deployment
+- **17 subtasks** with explicit deliverables
+- **Success criteria** for each task
+- **"Paint by numbers" instructions** Claude Code can execute
+
+No ambiguity. No architectural decisions left to chance. Each subtask stands alone—completable in a single session.
+
+### Step 3: The Rules → [CLAUDE.md](CLAUDE.md)
+
+DevPlan generated coding standards ensuring consistency:
+
+- How to structure files and imports
+- Testing requirements (>80% coverage)
+- Git commit conventions
+- What to do when blocked
+
+These rules persist across sessions, keeping Claude Code on track even when context resets.
+
+### Step 4: The Build → [DEVLOG.md](DEVLOG.md)
+
+With the plan in place, execution began. Each session:
+
+1. Read the plan, locate the next subtask
+2. Implement following the explicit instructions
+3. Run tests, linting, type checking
+4. Document decisions in the DEVLOG
+5. Commit with the subtask ID
+
+The DEVLOG captures the real journey—decisions made, challenges hit, time spent. It's the story of building LabBot.
+
+### Step 5: The Result → This Repository
+
+A working application that:
+- Accepts JSON lab results via API or web form
+- Detects and blocks PII before AI processing
+- Uses Claude Haiku to explain values in plain language
+- Shows severity with visual indicators
+- Cites authoritative medical sources
+- Auto-deploys to AWS Lambda via GitHub Actions
+
+---
+
+## Why This Matters
+
+AI assistants like Claude Code are powerful, but they struggle with:
+
+- **Ambiguous requirements** — What exactly should I build?
+- **Architectural decisions** — How should this be structured?
+- **Long-running projects** — Context resets between sessions
+
+DevPlan solves these by front-loading the thinking:
+
+| Without DevPlan | With DevPlan |
+|-----------------|--------------|
+| "Build me a lab interpreter" | 17 explicit subtasks with success criteria |
+| AI makes random architectural choices | Architecture defined before coding starts |
+| Each session starts from scratch | CLAUDE.md carries rules across sessions |
+| Unclear when you're "done" | Checkbox completion with verification |
+
+The result? Faster development, fewer dead ends, consistent quality.
+
+---
+
+## The Tools
+
+### DevPlan MCP Server
+
+The [DevPlan MCP Server](https://github.com/mmorris35/ClaudeCode-DevPlanBuilder) integrates with Claude Code to provide:
+
+- `devplan_start` — Initialize a new project
+- `devplan_interview_questions` — Guide requirements gathering
+- `devplan_create_brief` — Generate PROJECT_BRIEF.md
+- `devplan_generate_plan` — Create DEVELOPMENT_PLAN.md
+- `devplan_generate_claude_md` — Generate coding standards
+- `devplan_get_subtask` — Retrieve task details during implementation
+- `devplan_update_progress` — Mark tasks complete
+- `devplan_progress_summary` — Track overall progress
+
+### Specialized Agents
+
+DevPlan also generates specialized Claude Code agents:
+
+- **Executor Agent** — Haiku-powered agent for implementing subtasks
+- **Verifier Agent** — Sonnet-powered agent for validating the final product
+- **DevOps Agent** — Infrastructure and deployment specialist
+
+---
+
+## What LabBot Does
+
+**The Problem**: Patients get lab results with no context
+
+**The Solution**: LabBot provides:
 - Plain-language explanations of lab values
 - Visual severity indicators (normal/borderline/abnormal)
-- Citations to authoritative medical sources
-- Built-in safeguards against PII exposure
-
----
-
-## The Journey
-
-This project was built using the **DevPlan methodology** - a structured approach to AI-assisted software development. Every step is documented, demonstrating how an idea becomes a product.
-
-### 1. Requirements Capture → [PROJECT_BRIEF.md](PROJECT_BRIEF.md)
-An AI-guided interview extracted:
-- Core features and constraints
-- Technical requirements
-- Success criteria
-
-### 2. Implementation Roadmap → [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)
-The brief was transformed into:
-- 5 phases, 17 subtasks
-- Explicit deliverables and success criteria
-- "Paint by numbers" instructions for implementation
-
-### 3. Development Standards → [CLAUDE.md](CLAUDE.md)
-Coding rules ensuring:
-- Consistent code quality
-- Complete test coverage
-- Proper documentation
-
-### 4. The Build → [DEVLOG.md](DEVLOG.md)
-A timestamped journal capturing:
-- Implementation decisions
-- Challenges encountered
-- Time invested per phase
-
-### 5. The Result → This working application
+- Citations to authoritative medical sources (Mayo Clinic, NIH, MedlinePlus)
+- PII detection to prevent sensitive data from reaching the AI
 
 ---
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Web Browser                          │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │              index.html / app.js                     │   │
-│  │         JSON Input → PII Warning → Results           │   │
-│  └─────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    AWS API Gateway                          │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     AWS Lambda                              │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │                    FastAPI                           │   │
-│  │                                                      │   │
-│  │   POST /api/interpret                                │   │
-│  │         │                                            │   │
-│  │         ▼                                            │   │
-│  │   ┌─────────────┐                                    │   │
-│  │   │ PII Detector│──── PII Found? ──→ 400 Error      │   │
-│  │   └─────────────┘                                    │   │
-│  │         │ Clean                                      │   │
-│  │         ▼                                            │   │
-│  │   ┌─────────────┐     ┌──────────────┐              │   │
-│  │   │ Interpreter │────▶│ Claude Haiku │              │   │
-│  │   └─────────────┘     └──────────────┘              │   │
-│  │         │                                            │   │
-│  │         ▼                                            │   │
-│  │   ┌─────────────┐                                    │   │
-│  │   │  Citations  │                                    │   │
-│  │   └─────────────┘                                    │   │
-│  │         │                                            │   │
-│  │         ▼                                            │   │
-│  │   InterpretationResponse                             │   │
-│  │   (explanations + severity + citations)              │   │
-│  │                                                      │   │
-│  └─────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Browser["🌐 Web Browser"]
+        UI[index.html / app.js]
+    end
+
+    subgraph AWS["☁️ AWS"]
+        APIGateway[API Gateway]
+
+        subgraph Lambda["Lambda"]
+            FastAPI[FastAPI App]
+
+            subgraph Pipeline["Request Pipeline"]
+                PII{PII Detector}
+                Interpreter[Interpreter]
+                Citations[Citations]
+            end
+        end
+    end
+
+    subgraph External["🤖 External"]
+        Claude[Claude Haiku]
+    end
+
+    UI -->|POST /api/interpret| APIGateway
+    APIGateway --> FastAPI
+    FastAPI --> PII
+    PII -->|PII Found| Error[❌ 400 Error]
+    PII -->|Clean| Interpreter
+    Interpreter <-->|Explain values| Claude
+    Interpreter --> Citations
+    Citations -->|Response| FastAPI
+    FastAPI -->|JSON| UI
+
+    style Browser fill:#e3f2fd
+    style AWS fill:#fff8e1
+    style External fill:#fce4ec
+    style Error fill:#ffcdd2
 ```
 
 ---
@@ -262,6 +376,28 @@ curl -X POST https://your-api-url/api/interpret \
 ---
 
 ## The DevPlan Methodology
+
+```mermaid
+graph TD
+    subgraph Traditional["❌ Traditional AI Development"]
+        T1[Vague Prompt] --> T2[AI Guesses Architecture]
+        T2 --> T3[Context Lost Between Sessions]
+        T3 --> T4[Inconsistent Results]
+        T4 --> T5[🔄 Start Over]
+        T5 --> T1
+    end
+
+    subgraph DevPlan["✅ DevPlan Methodology"]
+        D1[Interview] --> D2[PROJECT_BRIEF.md]
+        D2 --> D3[DEVELOPMENT_PLAN.md]
+        D3 --> D4[CLAUDE.md Rules]
+        D4 --> D5[Execute Subtasks]
+        D5 --> D6[Verify & Ship]
+    end
+
+    style Traditional fill:#ffebee
+    style DevPlan fill:#e8f5e9
+```
 
 This project demonstrates structured AI-assisted development:
 
