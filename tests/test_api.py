@@ -68,6 +68,41 @@ async def test_health(client: AsyncClient) -> None:
     assert data["status"] == "healthy"
 
 
+async def test_root_static_files(client: AsyncClient) -> None:
+    """Test that static file paths use absolute paths for AWS Lambda compatibility."""
+    response = await client.get("/")
+    assert response.status_code == 200
+    html_content = response.text
+
+    # Verify CSS file is referenced with absolute path /static/
+    assert 'href="/static/styles.css"' in html_content
+    # Verify JS file is referenced with absolute path /static/
+    assert 'src="/static/app.js"' in html_content
+    # Ensure relative paths are NOT used
+    assert 'href="styles.css"' not in html_content
+    assert 'src="app.js"' not in html_content
+
+
+async def test_static_css_file(client: AsyncClient) -> None:
+    """Test that CSS static file is accessible."""
+    response = await client.get("/static/styles.css")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/css")
+    assert len(response.text) > 0
+
+
+async def test_static_js_file(client: AsyncClient) -> None:
+    """Test that JavaScript static file is accessible."""
+    response = await client.get("/static/app.js")
+    assert response.status_code == 200
+    # JavaScript can be served as either application/javascript or text/javascript
+    assert any(
+        response.headers["content-type"].startswith(prefix)
+        for prefix in ["application/javascript", "text/javascript"]
+    )
+    assert len(response.text) > 0
+
+
 class TestInterpretEndpoint:
     """Tests for POST /api/interpret endpoint."""
 
