@@ -20,6 +20,41 @@ from labbot.schemas import InterpretationResponse, LabResultsInput
 setup_logging()
 logger = logging.getLogger(__name__)
 
+
+class StagePathMiddleware:
+    """Middleware to strip AWS API Gateway stage prefix from path.
+
+    AWS HTTP API v2 includes the stage name in the path when invoking Lambda.
+    This middleware removes the stage prefix so FastAPI routes work correctly.
+    """
+
+    def __init__(self, app: Any) -> None:
+        """Initialize middleware with FastAPI app.
+
+        Args:
+            app: The FastAPI application instance.
+        """
+        self.app: Any = app
+
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+        """Process ASGI scope and remove stage prefix if present.
+
+        Args:
+            scope: ASGI scope dict containing request information.
+            receive: ASGI receive callable.
+            send: ASGI send callable.
+        """
+        if scope["type"] == "http":
+            path: str = scope.get("path", "")
+            # Remove /Prod or other stage names if present at the start of path
+            # This handles AWS HTTP API v2 stage prefixing
+            if path.startswith("/Prod/"):
+                scope["path"] = path[5:]  # Remove "/Prod" prefix
+            elif path == "/Prod":
+                scope["path"] = "/"
+
+        await self.app(scope, receive, send)
+
 MEDICAL_DISCLAIMER = """
 DISCLAIMER: LabBot provides educational information only and is not a substitute
 for professional medical advice, diagnosis, or treatment. Always consult with a
@@ -31,6 +66,9 @@ app = FastAPI(
     description=f"{settings.app_description}\n\n{MEDICAL_DISCLAIMER}",
     version=settings.app_version,
 )
+
+# Add middleware to strip AWS API Gateway stage prefix
+app.add_middleware(StagePathMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -158,5 +196,6 @@ async def interpret(lab_results: LabResultsInput) -> InterpretationResponse:
         ) from error
 
 
-# AWS Lambda handler using Mangum for ASGI-to-WSGI conversion
-handler = Mangum(app)
+# AWS Lambda handler using Mangum for ASGI-WSGI conversion
+# lifespan="off" is required for Lambda cold starts
+handler = Mangum(app, lifespan="off")

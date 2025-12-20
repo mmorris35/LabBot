@@ -38,20 +38,26 @@ flowchart LR
     end
 
     subgraph Phase3[" 3. Build"]
-        E --> G[Execute Subtasks]
+        E --> G["Executor Agent<br/>(Haiku)"]
         G --> H[DEVLOG.md]
         G --> I[Tests Pass]
     end
 
-    subgraph Phase4[" 4. Ship"]
-        I --> J[GitHub Actions]
+    subgraph Phase4[" 4. Verify"]
+        I --> V["Verifier Agent<br/>(Sonnet)"]
+        V --> W[✅ No Issues]
+    end
+
+    subgraph Phase5[" 5. Ship"]
+        W --> J[GitHub Actions]
         J --> K[AWS Lambda]
     end
 
     style Phase1 fill:#e1f5fe
     style Phase2 fill:#fff3e0
     style Phase3 fill:#e8f5e9
-    style Phase4 fill:#f3e5f5
+    style Phase4 fill:#fff3e0
+    style Phase5 fill:#f3e5f5
 ```
 
 ### Step 1: The Interview → [PROJECT_BRIEF.md](PROJECT_BRIEF.md)
@@ -91,17 +97,33 @@ These rules persist across sessions, keeping Claude Code on track even when cont
 
 ### Step 4: The Build → [DEVLOG.md](DEVLOG.md)
 
-With the plan in place, execution began. Each session:
+With the plan in place, execution began—but here's the key insight: **the plan was so granular that Claude Haiku could execute it.**
 
-1. Read the plan, locate the next subtask
-2. Implement following the explicit instructions
-3. Run tests, linting, type checking
-4. Document decisions in the DEVLOG
-5. Commit with the subtask ID
+DevPlan generates a specialized **Executor Agent** that runs on Haiku, the fastest and cheapest Claude model. Why? Because when instructions are explicit enough, you don't need the most powerful model—you need a reliable one that follows directions. The plan becomes the intelligence; the executor becomes the hands.
 
-The DEVLOG captures the real journey—decisions made, challenges hit, time spent. It's the story of building LabBot.
+Each session:
+1. Executor reads the plan, locates the next subtask
+2. Implements following the explicit instructions
+3. Runs tests, linting, type checking
+4. Documents decisions in the DEVLOG
+5. Commits with the subtask ID
 
-### Step 5: The Result → This Repository
+The DEVLOG captures the real journey—decisions made, challenges hit, time spent.
+
+### Step 5: The Verification
+
+DevPlan also generates a **Verifier Agent**—adversarial by design. Running on Claude Sonnet, its job is to find problems:
+
+- Does the implementation match the brief?
+- Are there security vulnerabilities?
+- Do all tests actually test the right things?
+- Is the code maintainable?
+
+The verifier is skeptical. It looks for gaps, inconsistencies, and shortcuts.
+
+**The result for LabBot?** The verifier found no issues. Zero. The plan was comprehensive enough, and the execution disciplined enough, that an adversarial review passed on the first attempt.
+
+### Step 6: The Result → This Repository
 
 A working application that:
 - Accepts JSON lab results via API or web form
