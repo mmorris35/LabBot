@@ -29,14 +29,20 @@ Resources:
         Variables:
           ANTHROPIC_API_KEY: !Ref AnthropicApiKey
       Events:
-        ApiEvent:
+        RootEvent:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: ANY
+            ApiId: !Ref LabBotHttpApi
+        ProxyEvent:
           Type: HttpApi
           Properties:
             Path: /{proxy+}
             Method: ANY
             ApiId: !Ref LabBotHttpApi
-      Layers:
-        - !Ref LabBotDependencies
+    Metadata:
+      BuildMethod: python3.11
 
   LabBotHttpApi:
     Type: AWS::Serverless::HttpApi
@@ -54,14 +60,6 @@ Resources:
           - HEAD
         AllowHeaders:
           - '*'
-
-  LabBotDependencies:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: labbot-dependencies
-      ContentUri: src/
-      CompatibleRuntimes:
-        - python3.11
 
 Outputs:
   ApiUrl:
