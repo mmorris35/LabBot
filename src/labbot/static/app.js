@@ -3,6 +3,19 @@
  * Handles user interactions for lab result interpretation
  */
 
+/**
+ * Get the base path for API calls (handles API Gateway stage prefixes like /Prod)
+ */
+function getBasePath() {
+    const path = window.location.pathname;
+    // Remove trailing slash and get directory path
+    const dir = path.endsWith('/') ? path.slice(0, -1) : path.substring(0, path.lastIndexOf('/'));
+    console.log('[LabBot] window.location.href:', window.location.href);
+    console.log('[LabBot] window.location.pathname:', path);
+    console.log('[LabBot] getBasePath() returning:', dir || '(empty)');
+    return dir || '';
+}
+
 // Sample CBC (Complete Blood Count) data
 const SAMPLE_CBC_DATA = {
     lab_values: [
@@ -207,7 +220,11 @@ async function interpretResults() {
     resultsContainer.innerHTML = '';
 
     try {
-        const response = await fetch('/api/interpret', {
+        const apiUrl = getBasePath() + '/api/interpret';
+        console.log('[LabBot] Calling API:', apiUrl);
+        console.log('[LabBot] Request body:', JSON.stringify(labData));
+
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -215,8 +232,18 @@ async function interpretResults() {
             body: JSON.stringify(labData)
         });
 
+        console.log('[LabBot] Response status:', response.status);
+        console.log('[LabBot] Response ok:', response.ok);
+
         if (!response.ok) {
-            const errorData = await response.json();
+            const errorText = await response.text();
+            console.log('[LabBot] Error response body:', errorText);
+            let errorData;
+            try {
+                errorData = JSON.parse(errorText);
+            } catch (e) {
+                errorData = { detail: errorText };
+            }
             if (response.status === 400 && errorData.error === 'PII detected') {
                 showError(
                     'Personal information detected in your data. ' +
@@ -234,9 +261,11 @@ async function interpretResults() {
         }
 
         const interpretationResponse = await response.json();
+        console.log('[LabBot] Success! Response:', interpretationResponse);
         displayResults(interpretationResponse);
 
     } catch (error) {
+        console.error('[LabBot] Network/JS error:', error);
         showError('Network error: ' + error.message);
     } finally {
         loadingSpinner.style.display = 'none';

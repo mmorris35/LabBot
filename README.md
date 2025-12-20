@@ -2,6 +2,8 @@
 
 > **From idea to product: A journey in structured AI-assisted development**
 
+**[Try the Live Demo](https://c30p8msz60.execute-api.us-east-1.amazonaws.com/Prod/)**
+
 ![CI](https://github.com/mmn/labbot/actions/workflows/ci.yml/badge.svg)
 
 LabBot helps patients interpret their lab results in plain language. But this project is about more than the destination—it's a showcase of how the **DevPlan methodology** transforms a vague idea into a fully deployed application, with every step documented.
