@@ -1,7 +1,19 @@
 """Configuration settings for LabBot."""
 
 import os
+from pathlib import Path
 from typing import Any
+
+# Try to load dotenv if available (for local development)
+# In Lambda, environment variables are set directly, so this is optional
+try:
+    from dotenv import load_dotenv
+    # Load environment variables from .env file in project root
+    _env_file = Path(__file__).parent.parent.parent / ".env"
+    load_dotenv(dotenv_path=_env_file)
+except ImportError:
+    # dotenv not available (e.g., in Lambda), skip .env file loading
+    pass
 
 
 class Settings:
